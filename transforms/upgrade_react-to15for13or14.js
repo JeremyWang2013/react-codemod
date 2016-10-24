@@ -1,9 +1,6 @@
 const ITEMS = [
-    require('./react-to-react-dom1'),
-    require('./react-to-react-addons'),
+    require('./upgrade_react-to14for13'),
     require('./linkState'),
-    require('./findDOMNode1'),
-    require('./document-body-to-container'),
 ];
 
 module.exports = function (file, api, options) {

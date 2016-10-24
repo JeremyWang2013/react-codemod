@@ -21,6 +21,13 @@ function getDOMNodeToFindDOMNode(file, api) {
     if (!ReactUtils.hasReact(root))
         return false;
 
+    const checkSupportArrowFunc = (path) => path.filter((classPath)=> j(classPath).find(j.ArrowFunctionExpression).size() > 0);
+    const isSuportArrowFunctionExpression = (
+            checkSupportArrowFunc(ReactUtils.findReactCreateClass(root)).size() +
+            checkSupportArrowFunc(ReactUtils.findReactCreateClassModuleExports(root)).size() +
+            checkSupportArrowFunc(ReactUtils.findReactCreateClassExportDefault(root)).size()
+        ) > 0;
+
     const isObjectsProperty = (linkStateName)=> {
         let text = linkStateName.value;
         return linkStateName.type === 'Literal'
@@ -50,6 +57,12 @@ function getDOMNodeToFindDOMNode(file, api) {
             let prop = j.property('init', j.identifier(linkStateName.value), newValue);
             let param = j.objectExpression([prop]);
             body = j.callExpression(setState, [param]);
+
+            if (!isSuportArrowFunctionExpression) {
+                body = j.blockStatement([
+                    j.expressionStatement(body)
+                ])
+            }
         } else {
             body = createOnChangeBlockStatement4ObjectValue(linkStateName, newValue, setState);
         }
@@ -59,13 +72,16 @@ function getDOMNodeToFindDOMNode(file, api) {
 
         // j.FunctionDeclaration
 
-        // return j.callExpression(
-        //     j.memberExpression(
-        //         j.functionExpression(null, [arg1], body),
-        //         j.identifier("bind")),
-        //     [j.thisExpression()]
-        // );
-        return j.arrowFunctionExpression([arg1], body);
+        if (isSuportArrowFunctionExpression) {
+            return j.arrowFunctionExpression([arg1], body);
+        } else {
+            return j.callExpression(
+                j.memberExpression(
+                    j.functionExpression(null, [arg1], body),
+                    j.identifier("bind")),
+                [j.thisExpression()]
+            );
+        }
     };
 
     const createNewValue = (openingElement, linkType, e)=> {
@@ -146,7 +162,7 @@ function getDOMNodeToFindDOMNode(file, api) {
     const updateToFindDOMNode = classPath => {
         var sum = 0;
 
-        // <xxx xxxState={this.linkState("xxx")}/>
+        // <xxx xxxState={xxx.linkState("xxx")}/>
         sum += j(classPath)
             .find(j.JSXAttribute, {
                 name: {
