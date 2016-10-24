@@ -3,4 +3,5 @@ module.exports = {
     importReact: /(require|import).*['"]react(\/addons)?['"].*/i,
     importReactDOM: /(require|import).*['"]react-dom['"].*/i,
     isSupportImport: /import.*['"][^'"]+['"]/i,
+    hasLinkedStateMixin: /mixins\s*:\s*\[[^]]*addons\.LinkedStateMixin/i,
 }

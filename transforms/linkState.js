@@ -1,5 +1,6 @@
 'use strict';
 
+import {hasLinkedStateMixin} from './utils/regexps'
 const VALUE_LINK = "valueLink";
 const LINK_TYPES = [
     VALUE_LINK,
@@ -67,10 +68,6 @@ function getDOMNodeToFindDOMNode(file, api) {
             body = createOnChangeBlockStatement4ObjectValue(linkStateName, newValue, setState);
         }
 
-
-        // todo: 参数获得正确值
-
-        // j.FunctionDeclaration
 
         if (isSuportArrowFunctionExpression) {
             return j.arrowFunctionExpression([arg1], body);
@@ -159,7 +156,10 @@ function getDOMNodeToFindDOMNode(file, api) {
         return result
     };
 
-    const updateToFindDOMNode = classPath => {
+    const updateLinkState = classPath => {
+        if (hasLinkedStateMixin.test(j(classPath).toSource()))
+            return false;
+
         var sum = 0;
 
         // <xxx xxxState={xxx.linkState("xxx")}/>
@@ -198,7 +198,7 @@ function getDOMNodeToFindDOMNode(file, api) {
         return sum > 0;
     };
 
-    const apply = (path) => path.filter(updateToFindDOMNode);
+    const apply = (path) => path.filter(updateLinkState);
 
     const didTransform = (
             apply(ReactUtils.findReactCreateClass(root)).size() +
