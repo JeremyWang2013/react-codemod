@@ -157,7 +157,7 @@ function getDOMNodeToFindDOMNode(file, api) {
     };
 
     const updateLinkState = classPath => {
-        if (hasLinkedStateMixin.test(j(classPath).toSource()))
+        if (!hasLinkedStateMixin.test(j(classPath).toSource()))
             return false;
 
         var sum = 0;
